@@ -4,13 +4,14 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 // https://github.com/Nxllpointer/AdventOfCode2022/blob/9beb193f826f9110ebe436645f3176bf6da5869a/build.gradle.kts
 
 plugins {
-    kotlin("jvm") version "1.7.21"
+    kotlin("jvm") version "2.0.0-Beta1"
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-val currentDay = 18
+val currentYear = 2023
+val currentDay = 1
 
 repositories {
     mavenCentral()
@@ -22,37 +23,37 @@ kotlin {
             val common by creating
 
             for (day in 1..currentDay) {
-                val dayCompilation = create("day_$day") {
+                val dayCompilation = create("${currentYear}_day_$day") {
                     associateWith(common)
-                    generateAOCBaseStructure(day)
+                    generateAOCBaseStructure(currentYear, day)
 
                     dependencies {
                         implementation("io.github.zabuzard.maglev:maglev:1.2")
                     }
                 }
 
-                tasks.create<JavaExec>("runDay$day") {
+                tasks.create<JavaExec>("run${currentYear}Day$day") {
                     group = "aoc"
-                    mainClass.set("Day${day}Kt")
+                    mainClass.set("${currentYear}Day${day}Kt")
                     classpath = dayCompilation.runtimeDependencyFiles
                 }
             }
 
             all {
                 kotlinOptions {
-                    jvmTarget = "17"
+                    jvmTarget = "21"
                 }
             }
         }
     }
 
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
-fun KotlinCompilation<*>.generateAOCBaseStructure(day: Int) {
+fun KotlinCompilation<*>.generateAOCBaseStructure(year: Int, day: Int) {
     val kotlinDir = defaultSourceSet.kotlin.sourceDirectories.first { it.name == "kotlin" }
     val resourcesDir = defaultSourceSet.resources.srcDirs.first()
-    val mainFile = kotlinDir.resolve("Day${day}.kt")
+    val mainFile = kotlinDir.resolve("${year}Day${day}.kt")
     val inputFile = resourcesDir.resolve("input.txt")
     kotlinDir.mkdirs()
     resourcesDir.mkdirs()
@@ -60,7 +61,7 @@ fun KotlinCompilation<*>.generateAOCBaseStructure(day: Int) {
 
     if (mainFile.createNewFile()) {
         val templateContent = """
-            // AOC Day $day
+            // AOC Year $year Day $day
             fun main() {
                 val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
                 
