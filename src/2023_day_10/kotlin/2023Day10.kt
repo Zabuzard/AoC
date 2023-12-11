@@ -1,6 +1,7 @@
 import io.github.zabuzard.maglev.external.algorithms.ShortestPathComputationBuilder
 import io.github.zabuzard.maglev.external.graph.simple.SimpleEdge
 import io.github.zabuzard.maglev.external.graph.simple.SimpleGraph
+import kotlin.math.absoluteValue
 
 // AOC Year 2023 Day 10
 fun main() {
@@ -65,14 +66,36 @@ fun main() {
         graph.addEdge(SimpleEdge(it.destination, it.source, 1.0))
     }
 
-    val nodeToCost = ShortestPathComputationBuilder(graph).build()
-        .shortestPathCostsReachable(animalPosition)
+    val computation = ShortestPathComputationBuilder(graph).build()
+    val nodeToCost = computation.shortestPathCostsReachable(animalPosition)
 
     val maxCost = nodeToCost.maxOf { it.value.pathCost }.toInt()
     println("Max cost: $maxCost")
 
-    val loopNodes = nodeToCost.keys
+    // Shoelace theorem (area of polygon)
+    val loopNodesAsc = nodeToCost.toList().sortedBy { it.second.pathCost }
+    val farthest = loopNodesAsc.last().also { println("Farthest: $it") }.first
+    val firstEnd = loopNodesAsc.dropLast(1).last().also { println("First End: $it") }.first
+    val secondEnd = loopNodesAsc.dropLast(2).last().also { println("Second End: $it") }.first
+    val firstPath =
+        computation.shortestPath(animalPosition, firstEnd).orElseThrow().map { it.edge.destination }
+    val secondPath = computation.shortestPath(animalPosition, secondEnd).orElseThrow()
+        .map { it.edge.destination }
+    val polygonOutline = listOf(animalPosition) + firstPath + listOf(farthest) +
+            secondPath.reversed() + listOf(animalPosition)
+    println("Polygon length: ${polygonOutline.size}")
 
+    val area = polygonOutline.zipWithNext()
+        .sumOf { (left, right) -> left.x * right.y - right.x * left.y }.absoluteValue / 2
+    println("Length of loop: ${polygonOutline.size}")
+    println("Area is: $area")
+
+    // Picks theorem (I = A - (R/2) + 1)
+    val pointsInside = area - (polygonOutline.size / 2) + 1
+    println("Points inside: $pointsInside")
+
+    /*
+    val loopNodes = nodeToCost.keys
     val cornerNodes = mutableListOf<Point>()
     for (x in 0..<width) {
         cornerNodes += Point(x, -1)
@@ -115,9 +138,10 @@ fun main() {
         table[it.y][it.x] = 'O'
     }
     enclosedNodes.filter { it in graph.nodes }.forEach {
-        table[it.y][it.x] = 'I'
+        table[it.y][it.x] = '@'
     }
     table.map { it.concatToString() }.forEach { println(it) }
+    */
 }
 
 data class Point(val x: Int, val y: Int)
