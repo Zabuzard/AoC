@@ -11,7 +11,7 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 
 val currentYear = 2023
-val currentDay = 11
+val currentDay = 12
 
 repositories {
     mavenCentral()
@@ -29,7 +29,7 @@ kotlin {
                     generateAOCBaseStructure(currentYear, day)
 
                     dependencies {
-                        implementation("io.github.zabuzard.maglev:maglev:1.3")
+                        implementation("io.github.zabuzard.maglev:maglev:1.2")
                     }
                 }
 
