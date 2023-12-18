@@ -29,7 +29,8 @@ fun main() {
         Direction.entries.mapNotNull { item.moveInto(it, grid) }.forEach { itemsToProcess += it }
     }
 
-    val minHeatLoss = Direction.entries.map { Index(destinationX, destinationY, it) }
+    val minHeatLoss = Direction.entries.flatMap { dir -> (3..10).map { dir to it } }
+        .map { (dir, travelled) -> Index(destinationX, destinationY, dir, travelled) }
         .mapNotNull { tentativeHeatLosses[it] }
         .minBy { it.first }
 
@@ -63,7 +64,7 @@ enum class Direction {
             this == DOWN && other == UP
 }
 
-data class Index(val x: Int, val y: Int, val direction: Direction)
+data class Index(val x: Int, val y: Int, val direction: Direction, val travelledIntoDirection: Int)
 
 data class Item(
     val x: Int,
@@ -84,14 +85,16 @@ data class Item(
             Direction.DOWN -> x to y + 1
         }
 
+        if (direction != nextDirection && travelledIntoDirection < 3) return null
+
         if (nextY !in grid.indices || nextX !in grid[nextY].indices) return null
-        val nextTravelled = if (direction == nextDirection) travelledIntoDirection + 1 else 1
-        if (nextTravelled >= 3) return null
+        val nextTravelled = if (direction == nextDirection) travelledIntoDirection + 1 else 0
+        if (nextTravelled >= 10) return null
 
         return Item(nextX, nextY, nextDirection, nextTravelled, heatLoss + grid[nextY][nextX], toIndex())
     }
 
     override fun compareTo(other: Item) = heatLoss.compareTo(other.heatLoss)
 
-    fun toIndex() = Index(x, y, direction)
+    fun toIndex() = Index(x, y, direction, travelledIntoDirection)
 }
