@@ -11,7 +11,8 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 
 val currentYear = 2023
-val currentDay = 21
+val currentDay = 22
+val foo = true
 
 repositories {
     mavenCentral()
