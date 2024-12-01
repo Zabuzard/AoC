@@ -10,9 +10,8 @@ plugins {
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-val currentYear = 2023
-val currentDay = 22
-val foo = true
+val currentYear = 2024
+val currentDay = 1
 
 repositories {
     mavenCentral()
