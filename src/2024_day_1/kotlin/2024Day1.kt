@@ -1,5 +1,3 @@
-import kotlin.math.abs
-
 // AOC Year 2024 Day 1
 fun main() {
     val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
@@ -7,11 +5,10 @@ fun main() {
     val originalPairs = lines.map { it.split(Regex("\\s+")) }
         .map { it[0].toInt() to it[1].toInt() }
 
-    val leftSide = originalPairs.map { it.first }.sorted()
-    val rightSide = originalPairs.map { it.second }.sorted()
+    val leftSide = originalPairs.map { it.first }
+    val rightSide = originalPairs.map { it.second }.groupingBy { it }.eachCount()
 
-    val sum = leftSide.zip(rightSide)
-        .sumOf { abs(it.first - it.second) }
+    val score = leftSide.sumOf { it * (rightSide[it] ?: 0) }
 
-    println("Sum is $sum")
+    println("Score is $score")
 }
