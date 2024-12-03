@@ -16,12 +16,14 @@ fun main() {
                 else -> return@filter areInstructionsEnabled
             }
             false
-        }.map { Instruction(it[1].toInt(), it[2].toInt()) }
+        }.map { it[1] to it[2] }
+        .map { it.asInstruction() }
         .sumOf { it.multiply() }
 
     println("Result is: $result")
 }
 
+fun Pair<String, String>.asInstruction() = Instruction(first.toInt(), second.toInt())
 
 data class Instruction(val a: Int, val b: Int) {
     fun multiply() = a * b
