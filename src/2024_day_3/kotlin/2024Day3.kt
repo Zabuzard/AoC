@@ -9,27 +9,15 @@ fun main() {
     val result = lines.asSequence()
         .flatMap { pattern.findAll(it) }
         .map { it.groupValues }
-        .mapNotNull {
-            when (it[0]) {
-                "do()" -> {
-                    areInstructionsEnabled = true
-                    null
-                }
-
-                "don't()" -> {
-                    areInstructionsEnabled = false
-                    null
-                }
-
-                else -> {
-                    if (areInstructionsEnabled) {
-                        Instruction(it[1].toInt(), it[2].toInt())
-                    } else {
-                        null
-                    }
-                }
+        .filter {
+            areInstructionsEnabled = when (it[0]) {
+                "do()" -> true
+                "don't()" -> false
+                else -> return@filter areInstructionsEnabled
             }
-        }.sumOf { it.multiply() }
+            false
+        }.map { Instruction(it[1].toInt(), it[2].toInt()) }
+        .sumOf { it.multiply() }
 
     println("Result is: $result")
 }
