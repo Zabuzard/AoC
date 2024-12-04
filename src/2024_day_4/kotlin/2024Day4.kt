@@ -1,5 +1,3 @@
-import java.awt.SystemColor.text
-
 // AOC Year 2024 Day 4
 fun main() {
     val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
@@ -19,14 +17,22 @@ fun main() {
     val diagonals4 = (1..<grid.width)
         .map { it to grid.height - 1 }.map { (x, y) -> grid.getDiagonalBottomLeftToTopRight(x, y) }
 
-    val count = sequenceOf(rows, columns, diagonals1, diagonals2, diagonals3, diagonals4).flatten()
+    val xmasCount = sequenceOf(rows, columns, diagonals1, diagonals2, diagonals3, diagonals4).flatten()
         .flatMap { sequenceOf(it, it.reversed()) }
         .sumOf { it.countOccurrences("XMAS") }
 
-    println("Count: $count")
+    val xmasShapes = (0..<grid.width).flatMap { x -> (0..<grid.height).map { y -> x to y } }
+        .map { (x, y) -> grid.getXShapeWord(x, y) }
+        .count { it.isXmasShape() }
+
+    println("XMAS count: $xmasCount")
+    println("X-MAS shapes: $xmasShapes")
 }
 
 fun String.countOccurrences(needle: String) = windowedSequence(needle.length).count { it == needle }
+fun Pair<String, String>.isXmasShape() = first.equalsAnyDirection("MAS") && second.equalsAnyDirection("MAS")
+
+fun String.equalsAnyDirection(other: String) = this == other || reversed() == other
 
 fun List<String>.toGrid() = Grid(map { it.toList() }.toList())
 
@@ -37,6 +43,7 @@ data class Grid(private val grid: List<List<Char>>) {
     fun isInBounds(x: Int, y: Int) = x in 0..<width && y in 0..<height
     private fun Pair<Int, Int>.isInBounds() = isInBounds(first, second)
     operator fun get(x: Int, y: Int) = grid[y][x]
+    fun getOrNull(x: Int, y: Int) = grid.getOrNull(y)?.getOrNull(x)
 
     fun getRow(y: Int) = grid[y].joinToString(separator = "")
     fun getColumn(x: Int) = grid.map { it[x] }.joinToString(separator = "")
@@ -49,4 +56,17 @@ data class Grid(private val grid: List<List<Char>>) {
         generateSequence(startX to startY) { (x, y) ->
             (x + 1 to y - 1).takeIf { it.isInBounds() }
         }.map { (x, y) -> this[x, y] }.joinToString(separator = "")
+
+    fun getXShapeWord(x: Int, y: Int) = listOf(
+        listOf(
+            (x - 1 to y - 1),
+            (x to y),
+            (x + 1 to y + 1)
+        ), listOf(
+            (x - 1 to y + 1),
+            (x to y),
+            (x + 1 to y - 1)
+        )
+    ).map { it.mapNotNull { (x, y) -> getOrNull(x, y) }.joinToString(separator = "") }
+        .let { it[0] to it[1] }
 }
