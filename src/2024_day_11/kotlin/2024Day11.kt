@@ -9,7 +9,7 @@ fun main() {
         .toList()
 
     val blinks = 25
-    repeat(blinks) { stones = stones.blink() }
+    repeat(blinks) { i -> stones = stones.blink().also { println("Blinks ($i/$blinks)") } }
 
     println("Stones after $blinks blinks: ${stones.size}")
 }
