@@ -1,3 +1,5 @@
+import kotlin.math.abs
+
 // AOC Year 2024 Day 12
 fun main() {
     val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
@@ -15,15 +17,13 @@ fun main() {
 
         regions += region
         plotsWithoutRegion -= region.plots
-
-        println("Regions: ${regions.size}, Plots left: ${plotsWithoutRegion.size}")
     }
-
-    println("Regions: ${regions.size}")
-    regions.forEach { println("Region '${it.plantType}': area=${it.area()}, perimeter=${it.perimeter()}, price=${it.fencePrice()}") }
 
     val totalFencePrice = regions.sumOf { it.fencePrice() }
     println("Total Fence Price: $totalFencePrice")
+
+    val totalBulkFencePrice = regions.sumOf { it.bulkFencePrice() }
+    println("Total Bulk Fence Price: $totalBulkFencePrice")
 }
 
 fun <E> MutableSet<E>.removeFirst() = first().also { remove(it) }
@@ -37,6 +37,9 @@ fun Pair<Int, Int>.neighbors() = listOf(
     first to second - 1,
 )
 
+fun Pair<Int, Int>.isAdjacentTo(other: Pair<Int, Int>) =
+    abs(first - other.first) + abs(second - other.second) == 1
+
 data class Region(val plantType: Char) {
     val plots = mutableSetOf<Pair<Int, Int>>()
 
@@ -48,7 +51,6 @@ data class Region(val plantType: Char) {
         val plotsToExplore = mutableSetOf<Pair<Int, Int>>()
         plotsToExplore += startPlot
 
-        var i = 0
         while (plotsToExplore.isNotEmpty()) {
             val plot = plotsToExplore.removeFirst()
             plots += plot
@@ -56,16 +58,31 @@ data class Region(val plantType: Char) {
             plotsToExplore += plot.neighbors()
                 .filter { (x, y) -> garden.getOrNull(x, y) == plantType }
                 .filterNot { plots.contains(it) }
-
-            i++
-            if (i % 1_000_000 == 0) println("\t${plotsToExplore.size}")
         }
     }
 
-    fun area() = plots.size
-    fun perimeter() = plots.flatMap { plot ->
+    private fun perimeterPlots() = plots.flatMap { plot ->
         plot.neighbors().filterNot { plots.contains(it) }
-    }.size
+    }
+
+    fun area() = plots.size
+    fun perimeter() = perimeterPlots().size
+    fun connectedPerimeter(): Int {
+        val unconnectedPlots = perimeterPlots().toMutableSet()
+        val sides = mutableListOf<MutableSet<Pair<Int, Int>>>()
+        while (unconnectedPlots.isNotEmpty()) {
+            val plot = unconnectedPlots.removeFirst()
+
+            val connectedSide = sides.find { side -> side.any { plot.isAdjacentTo(it) } }
+            if (connectedSide != null) {
+                connectedSide += plot
+            } else {
+                sides += mutableSetOf(plot)
+            }
+        }
+        return sides.size
+    }
 
     fun fencePrice() = area() * perimeter()
+    fun bulkFencePrice() = area() * connectedPerimeter()
 }
