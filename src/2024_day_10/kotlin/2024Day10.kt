@@ -1,3 +1,4 @@
+import io.github.zabuzard.maglev.external.algorithms.ShortestPathComputation
 import io.github.zabuzard.maglev.external.algorithms.ShortestPathComputationBuilder
 import io.github.zabuzard.maglev.external.graph.simple.SimpleEdge
 import io.github.zabuzard.maglev.external.graph.simple.SimpleGraph
@@ -29,20 +30,37 @@ fun main() {
     val trailHeads = map.flatten().filter { it.isTrailHead() }
 
     val computation = ShortestPathComputationBuilder(graph).build()
-    val scores = trailHeads.sumOf { trailHead ->
-        computation.shortestPathReachable(trailHead)
-            .reachableNodes
-            .filter { it.isMountainTop() }
-            .count()
-    }
 
+    val scores = trailHeads.sumOf { it.hikingScore(computation) }
     println("Scores: $scores")
+
+    val ratings = trailHeads.sumOf { it.hikingRating(graph) }
+    println("Ratings: $ratings")
 }
 
 data class TopoEntry(val x: Int, val y: Int, val height: Int) {
     fun canWalkTo(other: TopoEntry) = other.height - height == 1
     fun isTrailHead() = height == 0
     fun isMountainTop() = height == 9
+    fun hikingScore(computation: ShortestPathComputation<TopoEntry, SimpleEdge<TopoEntry>>) =
+        computation.shortestPathReachable(this)
+            .reachableNodes
+            .filter { it.isMountainTop() }
+            .count()
+
+    fun hikingRating(graph: SimpleGraph<TopoEntry, SimpleEdge<TopoEntry>>): Int {
+        var pathsToMountainTops = 0
+        val nodesToExplore = ArrayDeque<TopoEntry>()
+        nodesToExplore += this
+
+        while (nodesToExplore.isNotEmpty()) {
+            val node = nodesToExplore.removeFirst()
+            if (node.isMountainTop()) pathsToMountainTops++
+            graph.getOutgoingEdges(node).forEach { nodesToExplore += it.destination }
+        }
+
+        return pathsToMountainTops
+    }
 }
 
 operator fun List<List<TopoEntry>>.get(x: Int, y: Int) = this[y][x]
