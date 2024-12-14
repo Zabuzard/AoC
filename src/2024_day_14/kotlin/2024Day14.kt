@@ -2,8 +2,8 @@
 fun main() {
     val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
 
-    val robots = lines.map { it.toRobot() }
-    val room = Room(101, 103, robots)
+    var robots = lines.map { it.toRobot() }
+    var room = Room(101, 103, robots)
     //val room = Room(11, 7, robots)
 
     println("Before:")
@@ -17,6 +17,22 @@ fun main() {
 
     val safetyFactor = room.safetyFactor()
     println("Safety factor: $safetyFactor")
+
+    // Part 2
+    println("Starting observation...")
+    robots = lines.map { it.toRobot() }
+    room = Room(101, 103, robots)
+    for (i in 1..100_000) {
+        println("Move $i/10_000")
+        room.moveRobots()
+        val picture = room.picture()
+        val isTree = picture.any { it.contains("########") }
+        if (isTree) {
+            println("Found a tree after $i moves:")
+            picture.forEach { println(it) }
+            break
+        }
+    }
 }
 
 fun String.toRobot() = "p=(\\d+),(\\d+) v=(-?\\d+),(-?\\d+)".toRegex()
@@ -63,6 +79,21 @@ data class Room(val width: Int, val height: Int, val robots: List<Robot>) {
             }
             println()
         }
+    }
+
+    fun picture(): List<String> {
+        val robotGrid = Array(width) { IntArray(height) }
+        robots.forEach { robotGrid[it.x][it.y]++ }
+        val pictureLines = mutableListOf<String>()
+        for (y in 0..<height) {
+            pictureLines += buildString {
+                for (x in 0..<width) {
+                    val robotsAtPos = robotGrid[x][y]
+                    append(if (robotsAtPos == 0) ' ' else '#')
+                }
+            }
+        }
+        return pictureLines
     }
 
     fun safetyFactor() = robots.groupBy { it.quadrant() }

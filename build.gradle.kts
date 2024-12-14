@@ -30,6 +30,7 @@ kotlin {
 
                     dependencies {
                         implementation("io.github.zabuzard.maglev:maglev:1.2")
+                        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
                     }
                 }
 
