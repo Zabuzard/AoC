@@ -8,11 +8,27 @@ fun main() {
     val (a, b, c) = lines.takeWhile { it.isNotEmpty() }
         .map { it.split(": ")[1] }
         .map { it.toInt() }
-    val instructions = lines.last().split(": ")[1].split(",").map { it.toInt() }
+    val instructionsText = lines.last().split(": ")[1]
+    val instructions = instructionsText.split(",").map { it.toInt() }
     val computer = Computer(a, b, c, instructions)
 
-    computer.runAll()
+    computer.runAll(100_000)
     println(computer.output())
+
+    // Part 2
+    for (aCandidate in 0..1_000_000) {
+        val computerAttempt = Computer(aCandidate, b, c, instructions)
+        computerAttempt.runAll(100_000)
+        val output = computerAttempt.output()
+        if (output == instructionsText) {
+            println("Found: $aCandidate")
+            break
+        }
+
+        if (aCandidate % 1_000 == 0) {
+            println("Progress: $aCandidate/1_000_000")
+        }
+    }
 }
 
 class Computer(
@@ -43,13 +59,13 @@ class Computer(
         }
     }
 
-    fun runAll() {
+    fun runAll(forceStopAfter: Int) {
         var i = 0
         while (instructionPointer in instructions.indices) {
             runCycle()
 
-            if (i % 1_000 == 0) {
-                println("Cycle ${++i}: ${output()}")
+            if (i >= forceStopAfter) {
+                break
             }
             i++
         }
