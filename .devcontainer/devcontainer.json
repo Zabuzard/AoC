@@ -11,8 +11,7 @@
       "version": "24-tem",
       "jdkDistro": "tem",
       "installGradle": true
-    },
-    "ghcr.io/devcontainers-contrib/features/pre-commit:1": {}
+    }
   },
   "customizations": {
     "vscode": {
