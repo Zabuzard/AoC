@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 // https://github.com/Nxllpointer/AdventOfCode2022/blob/9beb193f826f9110ebe436645f3176bf6da5869a/build.gradle.kts
 
 plugins {
-    kotlin("jvm") version "2.0.0-Beta1"
+    kotlin("jvm") version "2.2.21"
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-val currentYear = 2024
-val currentDay = 19
+val currentYear = 2025
+val currentDay = 1
 
 repositories {
     mavenCentral()
@@ -34,22 +34,16 @@ kotlin {
                     }
                 }
 
-                tasks.create<JavaExec>("run${currentYear}Day$day") {
+                tasks.register<JavaExec>("run${currentYear}Day$day") {
                     group = "aoc"
                     mainClass.set("${currentYear}Day${day}Kt")
                     classpath = dayCompilation.runtimeDependencyFiles
                 }
             }
-
-            all {
-                kotlinOptions {
-                    jvmTarget = "21"
-                }
-            }
         }
     }
 
-    jvmToolchain(21)
+    jvmToolchain(24)
 }
 
 fun KotlinCompilation<*>.generateAOCBaseStructure(year: Int, day: Int) {
