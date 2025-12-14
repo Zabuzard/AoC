@@ -18,7 +18,10 @@
     "vscode": {
       "extensions": [
         "vscjava.vscode-java-pack",
-        "vscjava.vscode-gradle"
+        "vscjava.vscode-gradle",
+        "fwcd.kotlin",
+        "mathiasfrohlich.Kotlin",
+        "esafirm.kotlin-formatter"
       ],
       "settings": {
         "[java]": {
