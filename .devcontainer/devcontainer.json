@@ -11,7 +11,8 @@
       "version": "24-tem",
       "jdkDistro": "tem",
       "installGradle": true
-    }
+    },
+    "ghcr.io/mikaello/devcontainer-features/kotlinc:1": {}
   },
   "customizations": {
     "vscode": {
