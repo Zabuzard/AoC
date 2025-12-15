@@ -1,7 +1,3 @@
-import io.github.zabuzard.maglev.external.algorithms.ShortestPathComputationBuilder
-import io.github.zabuzard.maglev.external.graph.simple.SimpleEdge
-import io.github.zabuzard.maglev.external.graph.simple.SimpleGraph
-
 // AOC Year 2025 Day 10
 fun main() {
     val lines = {}::class.java.getResourceAsStream("input.txt")!!.bufferedReader().readLines()
@@ -12,30 +8,44 @@ fun main() {
     println("Part1 result: $resultPart1")
 }
 
-fun part1(machine: Machine): Int {
+fun part1(machine: Machine): Long {
     val lightsAmount = machine.lights.state.size
     val src = Lights(BooleanArray(lightsAmount) { false })
     val dest = machine.lights
 
-    val graph = SimpleGraph<Lights, SimpleEdge<Lights>>()
-    val path = ShortestPathComputationBuilder(graph).build()
-        .shortestPath(src, dest).orElseThrow()
-    return path.length()
+    val graph = machine.toGraph() // .also { println(it) }
+    return shortestPathLength(graph, src, dest)
 }
 
-fun Machine.toGraph(): SimpleGraph<Lights, SimpleEdge<Lights>> {
-    val graph = SimpleGraph<Lights, SimpleEdge<Lights>>()
-    createAllPermutationsOfLights(lights.state.size)
-        .forEach { graph.addNode(it) }
+fun shortestPathLength(graph: Graph, src: Lights, dest: Lights): Long {
+    val toProcess = ArrayDeque<Pair<Lights, Long>>()
+    toProcess.add(src to 0)
+    val visited = mutableSetOf<Lights>()
+    while (toProcess.isNotEmpty()) {
+        val (node, depth) = toProcess.removeFirst()
+        visited += node // .also { println("Visited: $node") }
+        if (node == dest) return depth
 
-    buttons.forEach { button -> graph.nodes.forEach { src ->
+        val neighbors = graph.nodeToOutgoingEdges[node] ?: emptySet()
+        // println("  Neighbors: $neighbors")
+        neighbors
+            .filter { it !in visited }
+            .forEach { toProcess.add(it to depth + 1) }
+    }
+    return -1
+}
+
+fun Machine.toGraph(): Graph {
+    val graph = Graph()
+    val nodes = createAllPermutationsOfLights(lights.state.size)
+
+    buttons.forEach { button -> nodes.forEach { src ->
         val destState = src.state.copyOf()
         button.lights.forEach { lightIndex ->
             destState[lightIndex] = !src.state[lightIndex]
         }
         val dest = Lights(destState)
-        val edge = SimpleEdge(src, dest, 1.0)
-        graph.addEdge(edge)
+        graph.addEdge(src, dest)
     }}
     return graph
 }
@@ -62,7 +72,23 @@ fun String.toMachine() = Regex("\\[(.+)\\] (.+) \\{(.+)\\}")
 
 fun String.toLights() = this.map { it == '#' }.toBooleanArray()
     .let { Lights(it) }
-data class Lights(val state: BooleanArray)
+data class Lights(val state: BooleanArray) {
+    override fun toString() = buildString {
+        append("[")
+        state.forEach { append(if (it) "#" else ".") }
+        append("]")
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Lights) return false
+        return state.contentEquals(other.state)
+    }
+
+    override fun hashCode(): Int {
+        return state.contentHashCode()
+    }
+}
 
 fun String.toButtons() = this.split(" ").map {
     it.removeSurrounding("(", ")")
@@ -72,4 +98,20 @@ data class Button(val lights: List<Int>)
 
 class Machine(val lights: Lights, val buttons: List<Button>) {
     override fun toString() = "Machine(lights=$lights, buttons=$buttons)"
+}
+
+data class Graph(val nodeToOutgoingEdges: MutableMap<Lights, MutableSet<Lights>> = mutableMapOf()) {
+    fun addEdge(src: Lights, dest: Lights) {
+        nodeToOutgoingEdges.getOrPut(src) { mutableSetOf() } += dest
+    }
+
+    override fun toString() = buildString {
+        append("Graph:\n")
+        append("nodes:\n")
+        nodeToOutgoingEdges.keys.forEach { append("  $it\n") }
+        append("edges:\n")
+        nodeToOutgoingEdges.forEach { (src, dests) ->
+            append(" from $src: $dests\n")
+        }
+    }
 }
